@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
 """
-Example 3: Creating and Solving Custom PDEs with PyPIELM
-=========================================================
+Example 3: Creating and Solving Custom PDEs with DeepPhiELM
+===========================================================
 
 This example shows how to create custom PDE classes and solve them.
 We'll implement a reaction-diffusion equation with nonlinear reaction term.
+Uses numerical differentiation for all derivative computations.
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
-from pypielm import PIELM
-from pypielm.physics.pde_base import PDE
-from pypielm.physics.operators import DifferentialOperator
-from pypielm.utils import Visualizer
+from deepphielm import PIELM
+from deepphielm.physics.pde_base import PDE
+from deepphielm.physics.operators import DifferentialOperator
+from deepphielm.utils import Visualizer
 from typing import Dict
 
 

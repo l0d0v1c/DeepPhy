@@ -1,23 +1,24 @@
 #!/usr/bin/env python3
 """
-Example 1: Solving 1D Heat Equation with PyPIELM
-=================================================
+Example 1: Solving 1D Heat Equation with DeepPhiELM
+====================================================
 
 This example demonstrates how to solve the 1D heat equation:
 ∂u/∂t = α ∂²u/∂x²
 
 with initial condition u(x,0) = sin(πx) and boundary conditions u(0,t) = u(1,t) = 0
+Uses numerical differentiation instead of automatic differentiation.
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
-from pypielm import PIELM
-from pypielm.physics.equations import HeatEquation1D
-from pypielm.utils import Visualizer
+from deepphielm import PIELM
+from deepphielm.physics.equations import HeatEquation1D
+from deepphielm.utils import Visualizer
 
 
 def main():
-    print("PyPIELM Example: 1D Heat Equation")
+    print("DeepPhiELM Example: 1D Heat Equation")
     print("=" * 40)
     
     # Problem parameters
@@ -49,7 +50,7 @@ def main():
     print(f"Domain: x ∈ [0, {L}], t ∈ [0, {T_final}]")
     
     # Create and train PIELM model
-    print("\nCreating PIELM model...")
+    print("\nCreating DeepPhiELM model...")
     model = PIELM(
         n_hidden=100,
         activation='tanh',
@@ -59,7 +60,9 @@ def main():
         lambda_bc=100.0,
         regularization='l2',
         reg_param=1e-6,
-        random_state=42
+        random_state=42,
+        diff_step=1e-6,      # Numerical differentiation step
+        diff_method='central' # Central finite differences
     )
     
     print("Training model...")
@@ -106,7 +109,7 @@ def main():
     plt.figure(figsize=(12, 4))
     
     plt.subplot(1, 3, 1)
-    plt.plot(x_test, u_pred, 'b-', linewidth=2, label='PIELM')
+    plt.plot(x_test, u_pred, 'b-', linewidth=2, label='DeepPhiELM')
     plt.plot(x_test, u_exact, 'r--', linewidth=2, label='Exact')
     plt.xlabel('x')
     plt.ylabel('u(x,t)')

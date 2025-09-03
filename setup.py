@@ -1,4 +1,4 @@
-"""Setup configuration for PyPIELM."""
+"""Setup configuration for DeepPhiELM."""
 
 from setuptools import setup, find_packages
 
@@ -10,19 +10,18 @@ requirements = [
     "scipy>=1.7.0",
     "scikit-learn>=1.0.0",
     "matplotlib>=3.3.0",
-    "torch>=1.9.0",
     "scikit-optimize>=0.9.0",  # Optional for Bayesian optimization
 ]
 
 setup(
-    name="pypielm",
+    name="deepphielm",
     version="0.1.0",
-    author="PyPIELM Team",
-    author_email="contact@pypielm.org",
-    description="Physics-Informed Extreme Learning Machine for solving PDEs",
+    author="DeepPhiELM Team",
+    author_email="contact@deepphielm.org",
+    description="Physics-Informed Extreme Learning Machine for solving PDEs with numerical differentiation",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/pypielm/pypielm",
+    url="https://github.com/deepphielm/deepphielm",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 3 - Alpha",
@@ -60,8 +59,8 @@ setup(
         ],
     },
     project_urls={
-        "Bug Reports": "https://github.com/pypielm/pypielm/issues",
-        "Source": "https://github.com/pypielm/pypielm",
-        "Documentation": "https://pypielm.readthedocs.io/",
+        "Bug Reports": "https://github.com/deepphielm/deepphielm/issues",
+        "Source": "https://github.com/deepphielm/deepphielm",
+        "Documentation": "https://deepphielm.readthedocs.io/",
     },
 )

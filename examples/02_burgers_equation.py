@@ -1,24 +1,25 @@
 #!/usr/bin/env python3
 """
-Example 2: Solving Viscous Burgers Equation with PyPIELM
-=========================================================
+Example 2: Solving Viscous Burgers Equation with DeepPhiELM
+===========================================================
 
 This example demonstrates solving the nonlinear Burgers equation:
 ∂u/∂t + u∂u/∂x = ν∂²u/∂x²
 
 This is a good test case for nonlinear PDEs with shock formation.
+Uses numerical differentiation for computing derivatives.
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
-from pypielm import PIELM
-from pypielm.physics.equations import BurgersEquation
-from pypielm.utils import Visualizer
-from pypielm.optimization import HyperparameterOptimizer
+from deepphielm import PIELM
+from deepphielm.physics.equations import BurgersEquation
+from deepphielm.utils import Visualizer
+from deepphielm.optimization import HyperparameterOptimizer
 
 
 def main():
-    print("PyPIELM Example: Viscous Burgers Equation")
+    print("DeepPhiELM Example: Viscous Burgers Equation")
     print("=" * 45)
     
     # Problem parameters
@@ -114,7 +115,7 @@ def main():
     
     # Generate collocation points for optimization
     bounds = {'x': (0, L), 't': (0, T)}
-    from pypielm.utils.sampling import SamplingStrategy
+    from deepphielm.utils.sampling import SamplingStrategy
     sampler = SamplingStrategy()
     X_collocation = sampler.generate_points(2000, bounds, 'latin_hypercube')
     

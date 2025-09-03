@@ -1,6 +1,6 @@
-# PyPIELM Examples
+# DeepPhiELM Examples
 
-This directory contains comprehensive examples demonstrating various features and capabilities of PyPIELM.
+This directory contains comprehensive examples demonstrating various features and capabilities of DeepPhiELM.
 
 ## 📁 Example Files
 
@@ -49,7 +49,7 @@ This directory contains comprehensive examples demonstrating various features an
 
 ### Prerequisites
 ```bash
-pip install pypielm
+pip install deepphielm
 # or install from source:
 # pip install -e .
 ```
@@ -203,4 +203,4 @@ For questions or suggestions, please open an issue on GitHub.
 
 ---
 
-Happy solving with PyPIELM! 🚀
+Happy solving with DeepPhiELM! 🚀

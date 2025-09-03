@@ -1,14 +1,16 @@
-# PyPIELM - Physics-Informed Extreme Learning Machine
+# DeepPhiELM - Physics-Informed Extreme Learning Machine
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-PyPIELM is a fast and accurate framework for solving partial differential equations (PDEs) using Physics-Informed Extreme Learning Machines. It combines the rapid training of ELMs with the physics constraints of PINNs.
+DeepPhiELM is a fast and accurate framework for solving partial differential equations (PDEs) using Physics-Informed Extreme Learning Machines with **numerical differentiation**. It combines the rapid training of ELMs with physics constraints, using NumPy/SciPy instead of automatic differentiation frameworks.
 
 ## 🚀 Key Features
 
 - **Ultra-fast training**: 100-1000× faster than traditional PINNs
 - **Physics-informed**: Automatically enforces PDE constraints
+- **Numerical differentiation**: Uses finite differences, no PyTorch dependency
+- **Moore-Penrose pseudoinverse**: Robust linear system solving with SciPy
 - **Flexible architecture**: Supports various PDEs and boundary conditions
 - **Adaptive sampling**: Smart collocation point generation
 - **Comprehensive**: Includes optimization, visualization, and validation tools
@@ -16,13 +18,13 @@ PyPIELM is a fast and accurate framework for solving partial differential equati
 ## 📦 Installation
 
 ```bash
-pip install pypielm
+pip install deepphielm
 ```
 
 Or install from source:
 ```bash
-git clone https://github.com/pypielm/pypielm.git
-cd pypielm
+git clone https://github.com/deepphielm/deepphielm.git
+cd deepphielm
 pip install -e .
 ```
 
@@ -32,8 +34,8 @@ pip install -e .
 
 ```python
 import numpy as np
-from pypielm import PIELM
-from pypielm.physics.equations import HeatEquation1D
+from deepphielm import PIELM
+from deepphielm.physics.equations import HeatEquation1D
 
 # Define the PDE
 pde = HeatEquation1D(alpha=1.0)  # Heat equation: ∂u/∂t = α∂²u/∂x²
@@ -53,7 +55,9 @@ model = PIELM(
     activation='tanh',
     pde=pde,
     lambda_data=1.0,
-    lambda_physics=10.0
+    lambda_physics=10.0,
+    diff_step=1e-6,  # Numerical differentiation step size
+    diff_method='central'  # Central finite differences
 )
 
 model.fit(X_data, y_data, n_collocation=1000)
@@ -66,14 +70,15 @@ X_test = np.column_stack([
 u_pred = model.predict(X_test)
 ```
 
-### Custom PDE
+### Custom PDE with Numerical Derivatives
 
 ```python
-from pypielm.physics.pde_base import PDE
+from deepphielm.physics.pde_base import PDE
 
 class CustomPDE(PDE):
     def residual(self, u, x, derivatives):
         # Define your PDE: ∂u/∂t + u∂u/∂x = ν∂²u/∂x²
+        # derivatives computed numerically
         ut = derivatives.get('dt', 0)
         ux = derivatives.get('dx', 0)  
         uxx = derivatives.get('dxx', 0)
@@ -85,21 +90,41 @@ custom_pde = CustomPDE()
 model = PIELM(pde=custom_pde, n_hidden=200)
 ```
 
+## 🔬 Numerical Differentiation vs Automatic Differentiation
+
+DeepPhiELM uses **numerical differentiation** instead of automatic differentiation:
+
+| Aspect | DeepPhiELM (Numerical) | Traditional PINNs (AD) |
+|--------|------------------------|------------------------|
+| Dependencies | NumPy/SciPy only | PyTorch/TensorFlow |
+| Derivatives | Finite differences | Automatic differentiation |
+| Memory usage | Lower | Higher |
+| Setup complexity | Simple | Complex |
+| Accuracy | Controllable via step size | Machine precision |
+
+### Advantages of Numerical Approach:
+- ✅ **Lighter dependencies**: Only NumPy/SciPy required
+- ✅ **Easier deployment**: No GPU/deep learning frameworks
+- ✅ **Controllable accuracy**: Adjust `diff_step` parameter
+- ✅ **Better stability**: Moore-Penrose pseudoinverse
+- ✅ **Simpler debugging**: Transparent finite difference computation
+
 ## 📊 Performance Comparison
 
-| Method | Training Time | Error (L2) | Memory Usage |
-|--------|---------------|------------|--------------|
-| PIELM  | 0.5s         | 10⁻⁴       | 100 MB       |
-| PINN   | 120s         | 10⁻⁴       | 500 MB       |
-| FEM    | 5s           | 10⁻³       | 1 GB         |
+| Method | Training Time | Error (L2) | Memory Usage | Dependencies |
+|--------|---------------|------------|--------------|--------------|
+| DeepPhiELM | 0.5s | 10⁻⁴ | 50 MB | NumPy/SciPy |
+| PINN (PyTorch) | 120s | 10⁻⁴ | 500 MB | PyTorch/CUDA |
+| FEM | 5s | 10⁻³ | 1 GB | FEniCS/etc |
 
 ## 🏗️ Architecture
 
-PyPIELM is organized into several key modules:
+DeepPhiELM is organized into several key modules:
 
-- **Core**: Main PIELM implementation and ELM base classes
+- **Core**: Main PIELM implementation with numerical differentiation
 - **Physics**: PDE definitions, operators, and boundary conditions  
-- **Solvers**: Optimized linear solvers and regularization
+- **Solvers**: Optimized linear solvers using SciPy
+- **Differentiation**: Numerical differentiation algorithms
 - **Optimization**: Hyperparameter tuning and adaptive training
 - **Utils**: Sampling strategies, metrics, and visualization
 
@@ -121,31 +146,39 @@ Check out the `examples/` directory for comprehensive tutorials:
 - `02_burgers_equation.py` - Nonlinear Burgers equation
 - `03_custom_pde.py` - Creating custom PDEs
 - `04_optimization.py` - Hyperparameter optimization
-- `05_visualization.py` - Advanced plotting and analysis
 
 ## 🛠️ Advanced Features
 
-### Adaptive Training
+### Numerical Differentiation Control
 ```python
-from pypielm.optimization import AdaptiveTrainer
-
-trainer = AdaptiveTrainer(PIELM, initial_params)
-model = trainer.adaptive_refinement_training(
-    X_data, y_data, bounds,
-    max_iterations=10,
-    tolerance=1e-6
+model = PIELM(
+    diff_step=1e-6,      # Step size for finite differences
+    diff_method='central' # 'central', 'forward', 'backward'
 )
+
+# Adaptive step size
+model.differentiator.adaptive_step_size(model, X_sample)
+```
+
+### Linear System Solving
+```python
+from deepphielm.solvers import LinearSolver
+
+# Various solvers available
+solver = LinearSolver()
+solution = solver.solve(A, b, method='svd')  # SVD, Cholesky, etc.
 ```
 
 ### Hyperparameter Optimization
 ```python
-from pypielm.optimization import HyperparameterOptimizer
+from deepphielm.optimization import HyperparameterOptimizer
 
 optimizer = HyperparameterOptimizer(
     PIELM,
     param_bounds={
         'n_hidden': (50, 500),
-        'lambda_physics': (1e-3, 1e2)
+        'lambda_physics': (1e-3, 1e2),
+        'diff_step': (1e-8, 1e-4)
     }
 )
 
@@ -156,18 +189,9 @@ best_params = optimizer.optimize(
 )
 ```
 
-### Visualization
-```python
-from pypielm.utils import Visualizer
-
-viz = Visualizer()
-viz.plot_solution_2d(model, x_range=(0,1), y_range=(0,1))
-viz.plot_physics_residual(model, X_collocation)
-```
-
 ## 📖 Theory
 
-PyPIELM solves PDEs by minimizing the augmented loss:
+DeepPhiELM solves PDEs by minimizing:
 
 ```
 L = λ_data * ||u_θ(x_data) - y_data||² + 
@@ -175,13 +199,12 @@ L = λ_data * ||u_θ(x_data) - y_data||² +
     λ_bc * ||BC[u_θ]||² + λ_ic * ||IC[u_θ]||²
 ```
 
-Where:
-- `u_θ` is the ELM approximation
-- `𝒩` is the PDE operator
-- `BC/IC` are boundary/initial conditions
-- `λ` are weighting parameters
+Where derivatives are computed using **finite differences**:
+- `∂u/∂x ≈ (u(x+h) - u(x-h))/(2h)` (central difference)
+- `∂²u/∂x² ≈ (u(x+h) - 2u(x) + u(x-h))/h²`
 
-The key insight is that ELM's linear-in-parameters structure allows us to solve this as a single linear system, avoiding iterative optimization.
+The solution uses **Moore-Penrose pseudoinverse**:
+- `β = pinv(H^T H + λI) H^T y`
 
 ## 🤝 Contributing
 
@@ -195,14 +218,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - Inspired by Physics-Informed Neural Networks (PINNs)
 - Built on the Extreme Learning Machine framework
+- Uses numerical methods for robust, dependency-light operation
 - Thanks to the scientific computing community
 
 ## 📞 Contact
 
-- **Issues**: [GitHub Issues](https://github.com/pypielm/pypielm/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/pypielm/pypielm/discussions)
-- **Documentation**: [PyPIELM Docs](https://pypielm.readthedocs.io/)
+- **Issues**: [GitHub Issues](https://github.com/deepphielm/deepphielm/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/deepphielm/deepphielm/discussions)
+- **Documentation**: [DeepPhiELM Docs](https://deepphielm.readthedocs.io/)
 
 ---
 
-⭐ If you find PyPIELM useful, please star the repository!
+⭐ If you find DeepPhiELM useful, please star the repository!

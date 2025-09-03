@@ -1,21 +1,23 @@
 #!/usr/bin/env python3
 """
-Example 4: Advanced Optimization Techniques with PyPIELM
-=========================================================
+Example 4: Advanced Optimization Techniques with DeepPhiELM
+===========================================================
 
 This example demonstrates various optimization strategies:
 1. Hyperparameter optimization
 2. Adaptive training
 3. Cross-validation
 4. Multi-scale training
+
+Uses numerical differentiation throughout.
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
-from pypielm import PIELM
-from pypielm.physics.equations import HeatEquation2D
-from pypielm.optimization import HyperparameterOptimizer, AdaptiveTrainer, CrossValidator
-from pypielm.utils import Visualizer
+from deepphielm import PIELM
+from deepphielm.physics.equations import HeatEquation2D
+from deepphielm.optimization import HyperparameterOptimizer, AdaptiveTrainer, CrossValidator
+from deepphielm.utils import Visualizer
 import time
 
 
