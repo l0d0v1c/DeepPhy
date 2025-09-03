@@ -146,6 +146,7 @@ Check out the `examples/` directory for comprehensive tutorials:
 - `02_burgers_equation.py` - Nonlinear Burgers equation  
 - `03_custom_pde.py` - Creating custom PDEs
 - `04_optimization_example.py` - Hyperparameter optimization
+- `05_schrodinger_hydrogen.py` - Quantum mechanics: Hydrogen atom 2p orbital
 
 ### Example Results
 
@@ -172,6 +173,18 @@ The Burgers equation example solves the nonlinear PDE `∂u/∂t + u∂u/∂x = 
 
 **Shock formation analysis:**
 ![Burgers shock formation](./burgers_shock.png)
+
+#### Schrödinger Equation - Hydrogen 2p_z Orbital
+The quantum mechanics example solves the time-independent Schrödinger equation `-½∇²ψ - 1/r ψ = E ψ` for the hydrogen atom:
+
+**Wavefunction and probability density |ψ|²:**
+![Hydrogen 2pz orbital](./hydrogen_2pz_orbital.png)
+
+**3D visualization of probability density:**
+![Hydrogen 2pz 3D](./hydrogen_2pz_3d.png)
+
+**Radial distribution and energy levels:**
+![Hydrogen 2pz analysis](./hydrogen_2pz_analysis.png)
 
 ## 🛠️ Advanced Features
 
