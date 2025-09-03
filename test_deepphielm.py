@@ -29,14 +29,17 @@ def main():
     print(f"Training data: {n_data} points")
     print(f"PDE: Heat equation with α = {alpha}")
     
-    # Create model with numerical differentiation
+    # Create model with optimized parameters
     model = PIELM(
-        n_hidden=50,
+        n_hidden=200,           # More neurons for better approximation
         activation='tanh',
         pde=pde,
         lambda_data=1.0,
-        lambda_physics=5.0,
-        diff_step=1e-6,
+        lambda_physics=10.0,    # Stronger physics constraint
+        lambda_bc=10.0,
+        lambda_ic=10.0,
+        reg_param=1e-5,         # Better regularization
+        diff_step=1e-5,         # Slightly larger step for stability
         diff_method='central',
         random_state=42
     )
@@ -44,8 +47,25 @@ def main():
     print("Training model...")
     
     try:
-        # Train model
-        model.fit(X_data, y_data, n_collocation=200)
+        # Generate boundary conditions for better training
+        # Boundary at x=0 and x=1
+        x_bc = np.array([[0.0, t] for t in np.linspace(0, 0.1, 20)] + 
+                       [[1.0, t] for t in np.linspace(0, 0.1, 20)])
+        y_bc = np.zeros(40)  # Zero boundary conditions
+        
+        # Initial condition at t=0
+        x_ic = np.column_stack([np.linspace(0, 1, 50), np.zeros(50)])
+        y_ic = np.sin(np.pi * x_ic[:, 0])
+        
+        # Train model with boundary and initial conditions
+        model.fit(
+            X_data, y_data, 
+            X_bc=x_bc, y_bc=y_bc,
+            X_ic=x_ic, y_ic=y_ic,
+            n_collocation=500,
+            collocation_strategy='latin_hypercube',
+            max_physics_iterations=5
+        )
         
         # Test prediction
         x_test = np.linspace(0, 1, 20)

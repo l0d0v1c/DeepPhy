@@ -156,26 +156,16 @@ class PIELM(ELMBase):
         y_ic: Optional[np.ndarray] = None
     ) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Construct augmented linear system with all constraints.
-        
-        With numerical differentiation, we use an iterative approach:
-        1. Start with data fitting
-        2. Iteratively improve to satisfy physics constraints
+        Construct linear system with data, boundary, and initial conditions.
+        Physics constraints are handled separately in iterative refinement.
         """
         # Compute hidden matrices
         H_data = self._compute_hidden_matrix(X_data)
-        H_coll = self._compute_hidden_matrix(X_collocation)
         
         # Initialize system matrices with data term
         n_output = y_data.shape[1] if len(y_data.shape) > 1 else 1
         A = self.lambda_data * H_data.T @ H_data
         b = self.lambda_data * H_data.T @ y_data
-        
-        # Add collocation points for physics (simplified approach)
-        # In full implementation, this would involve iterative refinement
-        if self.pde is not None:
-            A += self.lambda_physics * H_coll.T @ H_coll
-            b += self.lambda_physics * H_coll.T @ np.zeros((H_coll.shape[0], n_output))
         
         # Add boundary conditions
         if X_bc is not None and y_bc is not None:
@@ -198,6 +188,43 @@ class PIELM(ELMBase):
             A += self.reg_param * np.eye(A.shape[0])
         
         return A, b
+    
+    def _physics_penalty_update(
+        self,
+        X_collocation: np.ndarray,
+        current_residual: np.ndarray,
+        learning_rate: float = 0.1
+    ) -> np.ndarray:
+        """
+        Compute penalty update for physics residual using gradient-based approach.
+        """
+        if self.pde is None:
+            return np.zeros_like(self.beta)
+        
+        # Compute hidden matrix for collocation points
+        H_coll = self._compute_hidden_matrix(X_collocation)
+        
+        # Ensure residual is the right shape
+        if len(current_residual.shape) == 1:
+            current_residual = current_residual.reshape(-1, 1)
+        
+        # Simple gradient-like penalty: penalize high residuals
+        residual_flat = current_residual.flatten()
+        residual_weights = np.abs(residual_flat)
+        residual_weights = residual_weights / (np.max(residual_weights) + 1e-8)
+        
+        # Weighted penalty term - make sure dimensions match
+        weighted_residual = (residual_weights * residual_flat).reshape(-1, 1)
+        penalty = learning_rate * self.lambda_physics * H_coll.T @ weighted_residual
+        
+        # Ensure penalty has same shape as beta
+        if penalty.shape != self.beta.shape:
+            if len(self.beta.shape) == 2 and self.beta.shape[1] == 1:
+                penalty = penalty.reshape(-1, 1)
+            else:
+                penalty = penalty.flatten()
+        
+        return penalty
     
     def fit(
         self,
@@ -262,36 +289,57 @@ class PIELM(ELMBase):
                 y_ic = y_ic.reshape(-1, 1)
             y_ic_scaled = self.output_scaler.transform(y_ic)
         
-        # Iterative training with physics constraints
-        for iteration in range(max_physics_iterations):
-            # Construct and solve augmented system
-            A, b = self._construct_augmented_system(
-                X_data_scaled, y_data_scaled,
-                X_collocation_scaled,
-                X_bc_scaled, y_bc_scaled,
-                X_ic_scaled, y_ic_scaled
-            )
+        # Step 1: Solve base system (data + BC + IC)
+        A, b = self._construct_augmented_system(
+            X_data_scaled, y_data_scaled,
+            X_collocation_scaled,
+            X_bc_scaled, y_bc_scaled,
+            X_ic_scaled, y_ic_scaled
+        )
+        
+        # Initial solution
+        if self.regularization == 'l2':
+            A_reg = A + self.reg_param * np.eye(A.shape[0])
+            self.beta = np.linalg.solve(A_reg, b) if np.linalg.cond(A_reg) < 1e12 else pinv(A_reg) @ b
+        else:
+            self.beta = np.linalg.solve(A, b) if np.linalg.cond(A) < 1e12 else pinv(A) @ b
+        
+        # Step 2: Physics-informed refinement using augmented system
+        if self.pde is not None and self.lambda_physics > 0:
+            prev_residual = float('inf')
             
-            # Solve linear system using pseudoinverse
-            if self.regularization == 'l2':
-                # Regularized solution
-                self.beta = pinv(A + self.reg_param * np.eye(A.shape[0])) @ b
-            else:
-                # Direct pseudoinverse
-                self.beta = pinv(A) @ b
-            
-            # Check physics compliance if PDE is defined
-            if self.pde is not None and iteration < max_physics_iterations - 1:
-                # Compute physics residual
+            for iteration in range(max_physics_iterations):
+                # Compute current physics residual
                 residual = self.compute_physics_residual(X_collocation)
                 avg_residual = np.mean(np.abs(residual))
                 
-                if avg_residual < 1e-6:  # Converged
+                if avg_residual < 1e-3:  # Looser convergence criterion
                     break
                 
-                # Adaptive step size for better physics compliance
-                if iteration > 0 and avg_residual > prev_residual:
-                    self.differentiator.h *= 0.5  # Reduce step size
+                # Re-solve augmented system with physics penalty
+                H_coll = self._compute_hidden_matrix(X_collocation_scaled)
+                
+                # Add physics penalty to system - use residual as target
+                physics_penalty_weight = self.lambda_physics / (1.0 + avg_residual)  # Adaptive weight
+                A_phys = A + physics_penalty_weight * H_coll.T @ H_coll
+                
+                # Target is to minimize residual, so we add a small penalty toward zero residual
+                physics_target = -0.1 * residual.reshape(-1, 1)  # Small correction toward zero residual
+                b_phys = b + physics_penalty_weight * H_coll.T @ physics_target
+                
+                # Solve updated system
+                if self.regularization == 'l2':
+                    A_phys += self.reg_param * np.eye(A_phys.shape[0])
+                
+                try:
+                    self.beta = np.linalg.solve(A_phys, b_phys) if np.linalg.cond(A_phys) < 1e12 else pinv(A_phys) @ b_phys
+                except np.linalg.LinAlgError:
+                    # Fallback to pseudoinverse if solve fails
+                    self.beta = pinv(A_phys) @ b_phys
+                
+                # Check for improvement
+                if iteration > 0 and avg_residual > 1.1 * prev_residual:
+                    break  # Stop if getting significantly worse
                 
                 prev_residual = avg_residual
         

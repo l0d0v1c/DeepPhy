@@ -55,9 +55,11 @@ class SamplingStrategy:
         dims = len(bounds)
         points = np.random.rand(n_points, dims)
         
-        # Scale to bounds
-        for i, (key, (low, high)) in enumerate(bounds.items()):
-            points[:, i] = low + points[:, i] * (high - low)
+        # Scale to bounds using vectorized operations
+        bounds_array = np.array(list(bounds.values()))
+        low_bounds = bounds_array[:, 0]
+        high_bounds = bounds_array[:, 1]
+        points = low_bounds + points * (high_bounds - low_bounds)
         
         return points
     
@@ -69,11 +71,13 @@ class SamplingStrategy:
         """Latin Hypercube Sampling for better space coverage."""
         dims = len(bounds)
         sampler = qmc.LatinHypercube(d=dims, seed=42)
-        points = sampler.sample(n_points)
+        points = sampler.random(n_points)
         
-        # Scale to bounds
-        for i, (key, (low, high)) in enumerate(bounds.items()):
-            points[:, i] = low + points[:, i] * (high - low)
+        # Scale to bounds using vectorized operations
+        bounds_array = np.array(list(bounds.values()))
+        low_bounds = bounds_array[:, 0]
+        high_bounds = bounds_array[:, 1]
+        points = qmc.scale(points, low_bounds, high_bounds)
         
         return points
     
@@ -85,11 +89,13 @@ class SamplingStrategy:
         """Sobol sequence sampling (quasi-random)."""
         dims = len(bounds)
         sampler = qmc.Sobol(d=dims, seed=42)
-        points = sampler.sample(n_points)
+        points = sampler.random(n_points)
         
-        # Scale to bounds
-        for i, (key, (low, high)) in enumerate(bounds.items()):
-            points[:, i] = low + points[:, i] * (high - low)
+        # Scale to bounds using vectorized operations
+        bounds_array = np.array(list(bounds.values()))
+        low_bounds = bounds_array[:, 0]
+        high_bounds = bounds_array[:, 1]
+        points = qmc.scale(points, low_bounds, high_bounds)
         
         return points
     
@@ -101,11 +107,13 @@ class SamplingStrategy:
         """Halton sequence sampling (quasi-random)."""
         dims = len(bounds)
         sampler = qmc.Halton(d=dims, seed=42)
-        points = sampler.sample(n_points)
+        points = sampler.random(n_points)
         
-        # Scale to bounds
-        for i, (key, (low, high)) in enumerate(bounds.items()):
-            points[:, i] = low + points[:, i] * (high - low)
+        # Scale to bounds using vectorized operations
+        bounds_array = np.array(list(bounds.values()))
+        low_bounds = bounds_array[:, 0]
+        high_bounds = bounds_array[:, 1]
+        points = qmc.scale(points, low_bounds, high_bounds)
         
         return points
     

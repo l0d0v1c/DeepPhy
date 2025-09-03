@@ -30,15 +30,14 @@ def main():
     pde = HeatEquation1D(alpha=alpha)
     print(f"PDE: ∂u/∂t = {alpha} ∂²u/∂x²")
     
-    # Generate training data
+    # Generate training data (random sampling instead of regular grid)
     print("\nGenerating training data...")
-    n_x = 50
-    n_t = 20
+    n_data = 500  # Random sampling instead of grid
     
-    x = np.linspace(0, L, n_x)
-    t = np.linspace(0, T_final, n_t)
-    X, T = np.meshgrid(x, t)
-    X_data = np.column_stack([X.flatten(), T.flatten()])
+    np.random.seed(42)
+    x_data = np.random.uniform(0, L, n_data)
+    t_data = np.random.uniform(0, T_final, n_data)
+    X_data = np.column_stack([x_data, t_data])
     
     # Analytical solution: u(x,t) = sin(πx) * exp(-π²αt)
     def analytical_solution(x, t):
@@ -46,30 +45,52 @@ def main():
     
     y_data = analytical_solution(X_data[:, 0], X_data[:, 1])
     
+    # Generate boundary conditions u(0,t) = u(1,t) = 0
+    print("Adding boundary conditions...")
+    n_bc = 100
+    t_bc = np.random.uniform(0, T_final, n_bc)
+    X_bc_left = np.column_stack([np.zeros(n_bc//2), t_bc[:n_bc//2]])
+    X_bc_right = np.column_stack([np.ones(n_bc//2), t_bc[n_bc//2:]])
+    X_bc = np.vstack([X_bc_left, X_bc_right])
+    y_bc = np.zeros(n_bc)
+    
+    # Generate initial condition u(x,0) = sin(πx)
+    print("Adding initial condition...")
+    n_ic = 100
+    x_ic = np.random.uniform(0, L, n_ic)
+    X_ic = np.column_stack([x_ic, np.zeros(n_ic)])
+    y_ic = analytical_solution(x_ic, 0)
+    
     print(f"Training data: {len(X_data)} points")
+    print(f"Boundary conditions: {len(X_bc)} points")
+    print(f"Initial conditions: {len(X_ic)} points")
     print(f"Domain: x ∈ [0, {L}], t ∈ [0, {T_final}]")
     
     # Create and train PIELM model
     print("\nCreating DeepPhiELM model...")
     model = PIELM(
-        n_hidden=100,
+        n_hidden=200,           # Balanced number of neurons
         activation='tanh',
         pde=pde,
-        lambda_data=1.0,
-        lambda_physics=10.0,
-        lambda_bc=100.0,
+        lambda_data=1.0,        # Data fitting weight
+        lambda_physics=1.0,     # Moderate physics constraint weight
+        lambda_bc=10.0,         # Moderate boundary condition weight
+        lambda_ic=10.0,         # Moderate initial condition weight
         regularization='l2',
-        reg_param=1e-6,
+        reg_param=1e-4,         # Balanced regularization
         random_state=42,
-        diff_step=1e-6,      # Numerical differentiation step
-        diff_method='central' # Central finite differences
+        diff_step=1e-4,         # Balanced step size
+        diff_method='central'   # Central finite differences
     )
     
     print("Training model...")
     model.fit(
         X_data, y_data,
-        n_collocation=1000,
-        collocation_strategy='latin_hypercube'
+        X_bc=X_bc, y_bc=y_bc,          # Add boundary conditions
+        X_ic=X_ic, y_ic=y_ic,          # Add initial condition
+        n_collocation=1000,            # Balanced collocation points
+        collocation_strategy='latin_hypercube',
+        max_physics_iterations=2       # Limited iterations for stability
     )
     
     print("Training completed!")

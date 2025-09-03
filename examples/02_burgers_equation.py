@@ -71,7 +71,8 @@ def main():
     
     # Interior data (sparse)
     n_interior = 200
-    np.random.seed(42)\n    x_interior = np.random.uniform(0, L, n_interior)
+    np.random.seed(42)
+    x_interior = np.random.uniform(0, L, n_interior)
     t_interior = np.random.uniform(0, T, n_interior)
     X_interior = np.column_stack([x_interior, t_interior])
     
