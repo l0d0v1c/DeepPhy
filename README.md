@@ -23,8 +23,8 @@ pip install deepphielm
 
 Or install from source:
 ```bash
-git clone https://github.com/deepphielm/deepphielm.git
-cd deepphielm
+git clone https://github.com/rdmediation/DeepPhy.git
+cd DeepPhy
 pip install -e .
 ```
 
@@ -142,10 +142,36 @@ DeepPhiELM is organized into several key modules:
 
 Check out the `examples/` directory for comprehensive tutorials:
 
-- `01_heat_equation.py` - Basic heat equation solving
-- `02_burgers_equation.py` - Nonlinear Burgers equation
+- `01_heat_equation_1d.py` - Basic heat equation solving
+- `02_burgers_equation.py` - Nonlinear Burgers equation  
 - `03_custom_pde.py` - Creating custom PDEs
-- `04_optimization.py` - Hyperparameter optimization
+- `04_optimization_example.py` - Hyperparameter optimization
+
+### Example Results
+
+#### 1D Heat Equation
+The heat equation example demonstrates solving `∂u/∂t = α∂²u/∂x²` with initial condition `u(x,0) = sin(πx)`:
+
+**Solution at different times:**
+![Heat equation evolution](./heat_1d_evolution.png)
+
+**Solution comparison and error analysis:**
+![Heat equation results](./heat_1d_results.png)
+
+**Model size vs accuracy analysis:**
+![Heat equation size analysis](./heat_1d_size_analysis.png)
+
+#### Viscous Burgers Equation
+The Burgers equation example solves the nonlinear PDE `∂u/∂t + u∂u/∂x = ν∂²u/∂x²`:
+
+**Solution evolution and residual analysis:**
+![Burgers equation results](./burgers_results.png)
+
+**Energy conservation over time:**
+![Burgers energy conservation](./burgers_energy.png)
+
+**Shock formation analysis:**
+![Burgers shock formation](./burgers_shock.png)
 
 ## 🛠️ Advanced Features
 
@@ -223,9 +249,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Contact
 
-- **Issues**: [GitHub Issues](https://github.com/deepphielm/deepphielm/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/deepphielm/deepphielm/discussions)
-- **Documentation**: [DeepPhiELM Docs](https://deepphielm.readthedocs.io/)
+- **Issues**: [GitHub Issues](https://github.com/rdmediation/DeepPhy/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/rdmediation/DeepPhy/discussions)
+- **Documentation**: [DeepPhy Documentation](https://rdmediation.github.io/DeepPhy/)
 
 ---
 
