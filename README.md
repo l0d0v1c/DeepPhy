@@ -270,7 +270,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17051999.svg)](https://doi.org/10.5281/zenodo.17051999)
 
 
-Luc Emile Brunet, rdmediation/DeepPhy: DOI ». Zenodo, sept. 04, 2025. doi: 10.5281/zenodo.17051999.
+Luc Emile Brunet, Physics informed Extreme Learning Machine, rdmediation/DeepPhy , sept. 04, 2025. doi: 10.5281/zenodo.17051999.
 
 ---
 
