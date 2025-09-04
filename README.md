@@ -271,6 +271,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 
 Luc Emile Brunet, rdmediation/DeepPhy: DOI ». Zenodo, sept. 04, 2025. doi: 10.5281/zenodo.17051999.
+
 ---
 
 ⭐ If you find DeepPhiELM useful, please star the repository!
