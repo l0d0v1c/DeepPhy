@@ -266,6 +266,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Discussions**: [GitHub Discussions](https://github.com/rdmediation/DeepPhy/discussions)
 - **Documentation**: [DeepPhy Documentation](https://rdmediation.github.io/DeepPhy/)
 
+## Cite
+https://doi.org/10.5281/zenodo.17051999
+
+Luc Emile Brunet, rdmediation/DeepPhy: DOI ». Zenodo, sept. 04, 2025. doi: 10.5281/zenodo.17051999.
 ---
 
 ⭐ If you find DeepPhiELM useful, please star the repository!
